@@ -2,89 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    {% load static %}
+    <title>{{ course.name }}</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-light bg-light">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Online Course</a>
-            </div>
-            <ul class="nav navbar-nav navbar-right">
-                {% if user.is_authenticated %}
-                <li>
-                    <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
-                    <a class="btn btn-link" href="{% url 'onlinecourse:logout' %}">Logout</a>
-                </li>
-                {% else %}
-                <li>
-                    <form class="form-inline" action="{% url 'onlinecourse:login' %}" method="post">
-                        {% csrf_token %}
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Username" name="username">
-                            <input type="password" class="form-control" placeholder="Password" name="password">
-                            <button class="btn btn-primary" type="submit">Login</button>
-                            <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
-                        </div>
-                    </form>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
-
-    <!-- Page content -->
+<nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
-        <h2>{{ course.name }}</h2>
-        <div class="card-columns-vertical border-0">
-            {% for lesson in course.lesson_set.all %}
-            <div class="card mt-1 font-weight-bold border-0">
-                <div class="card-header"><h5>Lesson {{ lesson.order }}: {{ lesson.title }}</h5></div>
-                <div class="card-body">{{ lesson.content }}</div>
-            </div>
-            {% endfor %}
+        <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Online Course</a>
+        <div>
+            {% if user.is_authenticated %}
+                <span class="navbar-text mr-2">({{ user.username }})</span>
+                <a href="{% url 'onlinecourse:logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'onlinecourse:login' %}">Login</a>
+            {% endif %}
         </div>
+    </div>
+</nav>
 
-        <!-- Exam Section -->
-        {% if user.is_authenticated %}
-        <br/>
-        <button class="btn btn-primary btn-block" data-toggle="collapse" data-target="#exam">Start Exam</button>
-        <div id="exam" class="collapse mt-3">
-            <form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="POST">
-                {% csrf_token %}
-                {% for question in course.question_set.all %}
-                <div class="card mt-2">
+<div class="container mt-4">
+    <h2>{{ course.name }}</h2>
+    
+    {% for lesson in course.lesson_set.all %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Lesson {{ lesson.order }}: {{ lesson.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p><b>{{ lesson.content }}</b></p>
+            </div>
+        </div>
+    {% endfor %}
+
+    <button class="btn btn-primary btn-block mt-4" type="button" data-toggle="collapse" data-target="#examSection">
+        Start Exam
+    </button>
+
+    <div id="examSection" class="collapse show mt-3">
+        <form action="{% url 'onlinecourse:submit' course.id %}" method="post">
+            {% csrf_token %}
+            {% for question in course.question_set.all %}
+                <div class="card mt-3">
                     <div class="card-header">
                         <h5>{{ question.content }}</h5>
                     </div>
                     <div class="card-body">
-                        <div class="form-group">
-                            {% for choice in question.choice_set.all %}
+                        {% for choice in question.choice_set.all %}
                             <div class="form-check">
-                                <label class="form-check-label">
-                                    <input type="checkbox" name="choice_{{ choice.id }}" class="form-check-input"
-                                           id="{{ choice.id }}" value="{{ choice.id }}">
+                                <input class="form-check-input" type="checkbox" name="choice" value="{{ choice.id }}" id="choice_{{ choice.id }}">
+                                <label class="form-check-label" for="choice_{{ choice.id }}">
                                     {{ choice.content }}
                                 </label>
                             </div>
-                            {% endfor %}
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
-                <input class="btn btn-success btn-block mt-3 mb-4" type="submit" value="Submit">
-            </form>
-        </div>
-        {% else %}
-        <div class="alert alert-warning mt-3" role="alert">
-            Please login to take the exam.
-        </div>
-        {% endif %}
+            {% endfor %}
+            <button type="submit" class="btn btn-success btn-block mt-3 mb-5">Submit</button>
+        </form>
     </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
